@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+	<!-- Javascript SDKs-->
+	<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script> 
+	<script src="js/amazon-cognito-auth.min.js"></script>
+	<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script> 
+	<script src="js/amazon-cognito-identity.min.js"></script>   
+	<script src="js/config.js"></script>
+
+  </head>
+
+  <style>
+    body {font-family: Arial, Helvetica, sans-serif;
+        background-color: grey}
+    * {box-sizing: border-box;}
+
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: #474e5d;
+      padding-top: 50px;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
+      border: 2px solid #888;
+      width: 50%; /* Could be more or less, depending on screen size */
+      padding: 15px;
+    }
+
+    .link {
+      float: right;
+    }
+
+    input[type=text], input[type=password], input[type=email], input[type=personalname] {
+      width: 100%;
+      padding: 15px;
+      margin: 5px 0 22px 0;
+      display: inline-block;
+      border: none;
+      background: #f1f1f1;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+      margin: 0 auto;
+      margin-bottom: 15px;
+      border: none;
+      cursor: pointer;
+      width: 60%;
+      opacity: 0.9;
+      display: block;
+    }
+
+    button:hover {
+      opacity:1;
+    }
+  </style>
+
+  <body>
+    <form class="modal-content">
+      <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+
+      <label for="email"><b>Email</b></label>
+      <input type="text" id="inputUsername"  placeholder="Enter Email" name="username" required autofocus>
+
+      <label for="psw"><b>Password</b></label>
+      <input type="password" id="inputPassword"  placeholder="Password" name="password" required>    
+
+      <button type="button" onclick="signInButton()">Sign in</button>
+
+      <a href="register.html">Sign Up</a>
+      <a href="#" class="link" onclick="forgotpasswordbutton()">Forgot Password</a>
+    </form>
+
+
+<script>
+
+  function signInButton() {
+    
+	var authenticationData = {
+        Username : document.getElementById("inputUsername").value,
+        Password : document.getElementById("inputPassword").value,
+    };
+	
+    var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+    
+	var poolData = {
+        UserPoolId : _config.cognito.userPoolId, // Your user pool id here
+        ClientId : _config.cognito.clientId, // Your client id here
+    };
+	
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+	
+    var userData = {
+        Username : document.getElementById("inputUsername").value,
+        Pool : userPool,
+    };
+	
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+    
+	cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: function (result) {
+    			var accessToken = result.getAccessToken().getJwtToken();
+    			console.log(accessToken);
+          window.open("profile.html")	
+        },
+
+        onFailure: function(err) {
+            alert(err.message || JSON.stringify(err));
+        },
+    });
+  }
+
+  function forgotpasswordbutton() {
+  var poolData = {
+        UserPoolId : _config.cognito.userPoolId, // Your user pool id here
+        ClientId : _config.cognito.clientId, // Your client id here
+    };
+  
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+  
+    var userData = {
+        Username : document.getElementById("inputUsername").value,
+        Pool : userPool,
+    };
+  
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+    
+    cognitoUser.forgotPassword({
+        onSuccess: function (result) {
+            console.log('call result: ' + result);
+        },
+        onFailure: function(err) {
+            alert(err);
+      console.log(err);
+        },
+        inputVerificationCode() {
+            var verificationCode = prompt('Please input verification code ' ,'');
+            var newPassword = prompt('Enter new password ' ,'');
+            cognitoUser.confirmPassword(verificationCode, newPassword, this);
+        }
+    });
+  }
+  
+</script>
+</body>
+</html>
